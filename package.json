@@ -1,27 +1,37 @@
 {
-  "name": "sanchay-offline-ledger",
-  "private": true,
+  "name": "sanchay-monorepo",
   "version": "1.0.0",
-  "type": "module",
+  "private": true,
+  "description": "Offline-first community savings-group ledger backend",
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "functions",
+    "firestore",
+    "scripts"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@fontsource/inter": "^5.2.5",
-    "@fontsource/poppins": "^5.2.5",
-    "dexie": "^4.0.11",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "react-router-dom": "^7.18.4"
+    "dev": "npm --prefix apps/member-app run dev",
+    "build": "npm run --workspaces --if-present build",
+    "test": "npm run test:core && npm run test:member-app",
+    "test:core": "npm --prefix packages/core test",
+    "test:member-app": "vitest run apps/member-app/tests/",
+    "test:rules": "npx firebase-tools emulators:exec --only firestore \"npm --prefix firestore test\"",
+    "test:functions": "npx firebase-tools emulators:exec --only firestore \"npm --prefix functions test\"",
+    "test:all": "npm run test:core && npm run test:rules && npm run test:functions",
+    "seed": "npx firebase-tools emulators:exec --only firestore,auth \"npm --prefix scripts run seed\"",
+    "db:clear": "npx firebase-tools emulators:exec --only firestore,auth \"npm --prefix scripts run clear\"",
+    "db:admin": "npm --prefix scripts run admin",
+    "emulators:start": "npx firebase-tools emulators:start"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.4",
-    "autoprefixer": "^10.4.20",
-    "postcss": "^8.5.1",
-    "tailwindcss": "^3.4.17",
-    "vite": "^6.0.7",
-    "vite-plugin-pwa": "^0.21.1"
+    "typescript": "^5.4.5"
+  },
+  "overrides": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "dependencies": {
+    "firebase": "^10.14.1"
   }
 }

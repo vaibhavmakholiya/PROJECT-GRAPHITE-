@@ -1,0 +1,155 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --white: #FFFFFF;
+  --blue-50: #F3F9FF;
+  --blue-100: #E3F1FD;
+  --blue-200: #C7E3FA;
+  --blue-300: #9CCBF3;
+  --blue-500: #2F86D1;
+  --blue-600: #1D6DB5;
+  --blue-700: #17588F;
+  --navy-900: #0B2540;
+  --slate-600: #4A6580;
+
+  /* Functional status tokens ONLY */
+  --status-success: #1E8E5A;
+  --status-success-bg: #E8F6EF;
+  --status-success-border: #A3D9B5;
+
+  --status-amber: #B7791F;
+  --status-amber-bg: #FEF7ED;
+  --status-amber-border: #F5D8A0;
+
+  --status-error: #C0392B;
+  --status-error-bg: #FDEDEC;
+  --status-error-border: #F2B8B5;
+}
+
+/* Base resets & typography */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--blue-50);
+  color: var(--navy-900);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, .font-heading {
+  font-family: 'Sora', system-ui, sans-serif;
+}
+
+/* Safe area inset support */
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Touch targets */
+.touch-target {
+  min-height: 48px;
+  min-width: 48px;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--blue-200);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--blue-600);
+}
+
+/* Standardized accessible button styles */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: var(--blue-600);
+  color: #FFFFFF;
+  min-height: 48px;
+  padding: 0.75rem 1.5rem;
+  border-radius: 1rem;
+  font-family: 'Sora', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(11, 37, 64, 0.06);
+  cursor: pointer;
+}
+.btn-primary:hover {
+  background-color: var(--blue-700);
+  box-shadow: 0 8px 24px rgba(29, 109, 181, 0.12);
+}
+.btn-primary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--blue-300), 0 0 0 5px #FFFFFF;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: #FFFFFF;
+  color: var(--blue-600);
+  border: 1.5px solid var(--blue-200);
+  min-height: 48px;
+  padding: 0.75rem 1.5rem;
+  border-radius: 1rem;
+  font-family: 'Sora', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(11, 37, 64, 0.05);
+  cursor: pointer;
+}
+.btn-secondary:hover {
+  border-color: var(--blue-300);
+  background-color: var(--blue-50);
+}
+.btn-secondary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--blue-300), 0 0 0 5px #FFFFFF;
+}
+
+/* Pause animations under reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Print styles for receipts */
+@media print {
+  body {
+    background: white;
+  }
+  .no-print {
+    display: none !important;
+  }
+}

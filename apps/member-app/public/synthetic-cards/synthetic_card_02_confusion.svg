@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 856 540" width="856" height="540">
+  <defs>
+    <style>
+      .hdr { font-family: sans-serif; font-size: 20px; font-weight: bold; fill: #B5271F; }
+      .subhdr { font-family: sans-serif; font-size: 15px; fill: #4B5563; }
+      .body { font-family: sans-serif; font-size: 22px; font-weight: 600; fill: #111827; }
+      .lbl { font-family: sans-serif; font-size: 17px; fill: #6B7280; }
+      .num { font-family: monospace; font-size: 34px; font-weight: bold; letter-spacing: 4px; fill: #111827; }
+      .footer { font-family: sans-serif; font-size: 14px; fill: #B5271F; text-anchor: middle; }
+    </style>
+    
+  </defs>
+
+  <!-- Card Background -->
+  <rect x="0" y="0" width="856" height="540" rx="24" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="3"/>
+  <rect x="20" y="20" width="816" height="500" rx="16" fill="#FBFBFC" stroke="#E5E7EB" stroke-width="1.5"/>
+
+  <!-- Top Header -->
+  <text x="428" y="55" class="hdr" text-anchor="middle">GOVERNMENT OF INDIA / भारत सरकार</text>
+  <text x="428" y="80" class="subhdr" text-anchor="middle">Unique Identification Authority of India / भारतीय विशिष्ट पहचान प्राधिकरण</text>
+  <line x1="40" y1="95" x2="816" y2="95" stroke="#E5E7EB" stroke-width="2"/>
+
+  
+    <!-- Photo Placeholder Box -->
+    <rect x="60" y="125" width="160" height="200" rx="8" fill="#E2E8F0" stroke="#CBD5E1" stroke-width="2"/>
+    <circle cx="140" cy="200" r="40" fill="#94A3B8"/>
+    <path d="M 90 290 Q 140 240 190 290" fill="#94A3B8"/>
+
+    <!-- Personal Info Block -->
+    <text x="250" y="155" class="subhdr">सुनीता रमेश शर्मा</text>
+    <text x="250" y="190" class="body">Sunita Ramesh Sharma</text>
+    <text x="250" y="235" class="lbl">DOB:</text>
+    <text x="360" y="235" class="body">22/08/1987</text>
+    <text x="250" y="280" class="lbl">Gender / लिंग:</text>
+    <text x="380" y="280" class="body">Female</text>
+
+    <!-- Aadhaar 12-Digit Number Box -->
+    <rect x="180" y="370" width="496" height="65" rx="10" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+    <text x="428" y="415" class="num" text-anchor="middle">9876 5432 IO96</text>
+
+    <!-- Card Slogan Footer -->
+    <text x="428" y="475" class="footer">आधार - आम आदमी का अधिकार / Mera Aadhaar, Meri Pehchan</text>
+  
+</svg>

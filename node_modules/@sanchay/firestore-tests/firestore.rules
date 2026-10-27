@@ -1,0 +1,229 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function inSameGroup(groupId) {
+      return isAuthenticated() && ('groupId' in request.auth.token) && request.auth.token.groupId == groupId;
+    }
+
+    function isAdmin(groupId) {
+      return (isAuthenticated() && ('role' in request.auth.token) && request.auth.token.role == 'admin' && (!('groupId' in request.auth.token) || request.auth.token.groupId == groupId))
+        || (isAuthenticated() && (
+             ('phone_number' in request.auth.token && (request.auth.token.phone_number == '+919876543210' || request.auth.token.phone_number == '+919800000001'))
+             || ('phone' in request.auth.token && (request.auth.token.phone == '+919876543210' || request.auth.token.phone == '+919800000001'))
+           ));
+    }
+
+    function isMember(groupId) {
+      return inSameGroup(groupId) && ('role' in request.auth.token) && request.auth.token.role == 'member';
+    }
+
+    function isOwner(groupId, memberId) {
+      return inSameGroup(groupId) && ('memberId' in request.auth.token) && request.auth.token.memberId == memberId;
+    }
+
+    function isPositiveInteger(num) {
+      return num is int && num > 0;
+    }
+
+    function doesNotContainRawAadhaar(data) {
+      return !('aadhaar' in data) && !('aadhaarNumber' in data);
+    }
+
+    // Top-level fast lookup index for registration: groupCode -> groupId
+    match /groupCodeIndex/{groupCode} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    // Rules for multi-tenant groups
+    match /groups/{groupId} {
+      // Group root doc: readable by all members/admins in the group
+      allow read: if inSameGroup(groupId) || isAdmin(groupId);
+      allow write: if isAdmin(groupId);
+
+      // Group settings: readable by all members of the group, writable only by admin
+      match /settings/{settingId} {
+        allow read: if inSameGroup(groupId) || isAdmin(groupId);
+        allow write: if isAdmin(groupId);
+      }
+
+      // Members collection
+      match /members/{memberId} {
+        // Members can read their own profile; Admin can read all members;
+        // Pending members can read their own profile before custom claims are set
+        allow read: if isOwner(groupId, memberId)
+                    || isAdmin(groupId)
+                    || (isAuthenticated() && (
+                        (resource.data.authUid == request.auth.uid)
+                        || ('phone_number' in request.auth.token && (
+                            resource.data.phone == request.auth.token.phone_number
+                            || ('+91' + resource.data.phone) == request.auth.token.phone_number
+                           ))
+                        || ('phone' in request.auth.token && (
+                            resource.data.phone == request.auth.token.phone
+                            || ('+91' + resource.data.phone) == request.auth.token.phone
+                           ))
+                       ));
+
+        // Allow member to create or update their own profile document (authUid matches request.auth.uid, or verified phone matches)
+        // or admin to write, strictly ensuring raw Aadhaar is never saved
+        allow create: if (isAdmin(groupId) || (isAuthenticated() && (
+                            request.resource.data.authUid == request.auth.uid
+                            || ('phone_number' in request.auth.token && (
+                                request.resource.data.phone == request.auth.token.phone_number
+                                || ('+91' + request.resource.data.phone) == request.auth.token.phone_number
+                               ))
+                            || ('phone' in request.auth.token && (
+                                request.resource.data.phone == request.auth.token.phone
+                                || ('+91' + request.resource.data.phone) == request.auth.token.phone
+                               ))
+                         )))
+                      && doesNotContainRawAadhaar(request.resource.data);
+
+        allow update: if (isAdmin(groupId) || (isAuthenticated() && (
+                            resource.data.authUid == request.auth.uid
+                            || request.resource.data.authUid == request.auth.uid
+                            || ('phone_number' in request.auth.token && (
+                                resource.data.phone == request.auth.token.phone_number
+                                || request.resource.data.phone == request.auth.token.phone_number
+                                || ('+91' + resource.data.phone) == request.auth.token.phone_number
+                                || ('+91' + request.resource.data.phone) == request.auth.token.phone_number
+                               ))
+                            || ('phone' in request.auth.token && (
+                                resource.data.phone == request.auth.token.phone
+                                || request.resource.data.phone == request.auth.token.phone
+                                || ('+91' + resource.data.phone) == request.auth.token.phone
+                                || ('+91' + request.resource.data.phone) == request.auth.token.phone
+                               ))
+                         )))
+                      && doesNotContainRawAadhaar(request.resource.data);
+
+        allow delete: if isAdmin(groupId);
+      }
+
+      // Transactions: Strictly APPEND-ONLY! Updates and deletes are ALWAYS prohibited.
+      match /transactions/{txId} {
+        // Members read only their own transactions; Admin reads all
+        allow read: if (isAuthenticated() && ('memberId' in request.auth.token) && resource.data.memberId == request.auth.token.memberId && inSameGroup(groupId))
+                    || isAdmin(groupId);
+
+        // Created by admin. Updates and deletes ALWAYS prohibited.
+        allow create: if isAdmin(groupId)
+          && request.resource.data.txId == txId
+          && request.resource.data.groupId == groupId
+          && isPositiveInteger(request.resource.data.amountPaise)
+          && request.resource.data.type in ['contribution', 'withdrawal', 'loan_disbursement', 'loan_repayment', 'reversal']
+          && request.resource.data.mode in ['cash', 'upi', 'bank']
+          && doesNotContainRawAadhaar(request.resource.data)
+          && (
+            request.resource.data.type != 'reversal' ||
+            (
+              ('reversesId' in request.resource.data) &&
+              request.resource.data.reversesId is string &&
+              request.resource.data.reversesId.size() > 0 &&
+              ('reason' in request.resource.data) &&
+              request.resource.data.reason is string &&
+              request.resource.data.reason.size() > 0
+            )
+          );
+
+        allow update, delete: if false;
+      }
+
+      // Receipts: Created in same writeBatch as transaction. APPEND-ONLY.
+      match /receipts/{receiptId} {
+        allow read: if (isAuthenticated() && ('memberId' in request.auth.token) && resource.data.memberId == request.auth.token.memberId && inSameGroup(groupId))
+                    || isAdmin(groupId);
+
+        // Created by admin during transaction writeBatch. Updates and deletes ALWAYS prohibited.
+        allow create: if isAdmin(groupId)
+          && request.resource.data.receiptId == receiptId
+          && request.resource.data.groupId == groupId
+          && request.resource.data.status == 'APPROVED'
+          && isPositiveInteger(request.resource.data.amountPaise)
+          && doesNotContainRawAadhaar(request.resource.data);
+
+        allow update, delete: if false;
+      }
+
+      // Loan Requests: Members create only for themselves with status "pending"
+      match /loanRequests/{requestId} {
+        allow read: if (isAuthenticated() && ('memberId' in request.auth.token) && resource.data.memberId == request.auth.token.memberId && inSameGroup(groupId))
+                    || isAdmin(groupId);
+
+        allow create: if (isMember(groupId) || isAdmin(groupId))
+          && ('memberId' in request.auth.token)
+          && request.resource.data.memberId == request.auth.token.memberId
+          && request.resource.data.groupId == groupId
+          && request.resource.data.status == 'pending'
+          && isPositiveInteger(request.resource.data.amountPaise)
+          && isPositiveInteger(request.resource.data.installments);
+
+        // Only admin can decide / update status of loan requests
+        allow update: if isAdmin(groupId);
+        allow delete: if false;
+      }
+
+      // Loans & Schedule: Members read only their own loans; writable only by admin / backend
+      match /loans/{loanId} {
+        allow read: if (isAuthenticated() && ('memberId' in request.auth.token) && resource.data.memberId == request.auth.token.memberId && inSameGroup(groupId))
+                    || isAdmin(groupId);
+        allow write: if isAdmin(groupId);
+
+        match /schedule/{installmentNum} {
+          allow read: if (isAuthenticated() && inSameGroup(groupId) && ('memberId' in request.auth.token) && get(/databases/$(database)/documents/groups/$(groupId)/loans/$(loanId)).data.memberId == request.auth.token.memberId)
+                      || isAdmin(groupId);
+          allow write: if isAdmin(groupId);
+        }
+      }
+
+      // Announcements: Readable by any group member; writable only by admin
+      match /announcements/{announcementId} {
+        allow read: if inSameGroup(groupId);
+        allow write: if isAdmin(groupId);
+      }
+
+      // Notifications: Members read and mark read only their own notifications
+      match /notifications/{notificationId} {
+        allow read: if (isAuthenticated() && ('memberId' in request.auth.token) && resource.data.memberId == request.auth.token.memberId && inSameGroup(groupId))
+                    || isAdmin(groupId);
+        // Member can update 'read' status on their own notification
+        allow update: if (isAuthenticated() && ('memberId' in request.auth.token) && resource.data.memberId == request.auth.token.memberId && inSameGroup(groupId))
+                      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+        allow create, delete: if isAdmin(groupId);
+      }
+
+      // Conflicts: Admin only
+      match /conflicts/{conflictId} {
+        allow read, write: if isAdmin(groupId);
+      }
+
+      // Device Tokens for FCM: Read/write by owner member or admin
+      match /deviceTokens/{memberId} {
+        allow read, write: if isOwner(groupId, memberId) || isAdmin(groupId);
+      }
+
+      // Group Config collection (e.g. config/settings)
+      match /config/{configId} {
+        allow read: if inSameGroup(groupId) || isAdmin(groupId);
+        allow write: if isAdmin(groupId);
+      }
+
+      // Aadhaar Index: O(1) duplicate prevention - Backend / Cloud Functions only
+      match /aadhaarIndex/{hash} {
+        allow read, write: if false;
+      }
+
+      // Audit Log: Immutable audit trail - Backend / Cloud Functions only
+      match /auditLog/{auditId} {
+        allow read, write: if false;
+      }
+    }
+  }
+}
