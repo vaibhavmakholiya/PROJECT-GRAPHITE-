@@ -1,0 +1,32 @@
+{
+  "name": "sanchay-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Offline-first community savings-group ledger backend",
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "functions",
+    "firestore",
+    "scripts"
+  ],
+  "scripts": {
+    "dev": "npm --prefix apps/member-app run dev",
+    "build": "npm run --workspaces --if-present build",
+    "test": "npm run test:core && npm run test:member-app",
+    "test:core": "npm --prefix packages/core test",
+    "test:member-app": "vitest run apps/member-app/tests/",
+    "test:rules": "npx firebase-tools emulators:exec --only firestore \"npm --prefix firestore test\"",
+    "test:functions": "npx firebase-tools emulators:exec --only firestore \"npm --prefix functions test\"",
+    "test:all": "npm run test:core && npm run test:rules && npm run test:functions",
+    "seed": "npx firebase-tools emulators:exec --only firestore,auth \"npm --prefix scripts run seed\"",
+    "emulators:start": "npx firebase-tools emulators:start"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  },
+  "overrides": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  }
+}

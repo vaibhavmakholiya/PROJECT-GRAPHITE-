@@ -1,0 +1,16 @@
+{
+  "name": "scripts",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "seed": "tsx src/seed.ts"
+  },
+  "dependencies": {
+    "@sanchay/core": "file:../packages/core",
+    "firebase-admin": "^12.1.1",
+    "tsx": "^4.15.6"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

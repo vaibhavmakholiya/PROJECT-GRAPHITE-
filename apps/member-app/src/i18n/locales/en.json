@@ -1,0 +1,270 @@
+{
+  "app": {
+    "title": "Sanchay",
+    "subtitle": "Community Savings Ledger",
+    "tagline": "Offline-First Self-Help Group Ledger"
+  },
+  "nav": {
+    "home": "Home",
+    "transactions": "Passbook",
+    "loans": "Loans",
+    "alerts": "Alerts",
+    "profile": "Profile"
+  },
+  "sync": {
+    "synced": "Synced",
+    "syncing": "Syncing...",
+    "offline": "Offline Mode",
+    "waiting": "{{count}} pending sync"
+  },
+  "splash": {
+    "welcome": "Welcome to Sanchay",
+    "description": "Your trusted community savings passbook, always accessible even without internet.",
+    "selectLanguage": "Select your preferred language",
+    "continue": "Continue"
+  },
+  "auth": {
+    "loginTitle": "Member Login",
+    "loginSubtitle": "Enter your registered mobile number",
+    "phoneLabel": "Mobile Number",
+    "phonePlaceholder": "98000 00014",
+    "sendOtp": "Get OTP Code",
+    "otpTitle": "Enter Verification Code",
+    "otpSubtitle": "Sent to {{phone}}",
+    "otpPlaceholder": "6-digit code",
+    "verifyOtp": "Verify & Login",
+    "fillDemoCode": "Fill Test OTP (123456)",
+    "resendOtp": "Resend Code",
+    "changeNumber": "Change Number",
+    "invalidPhone": "Please enter a valid 10-digit mobile number",
+    "invalidOtp": "Invalid OTP. Use 123456 for testing."
+  },
+  "register": {
+    "title": "New Member Registration",
+    "privacyPledgeTitle": "Privacy Guarantee",
+    "privacyPledge": "Your details and ID photo are read locally on your device and never uploaded to public servers. Only confirmed records are registered.",
+    "scanCard": "Aadhaar Card Scan (OCR)",
+    "scanPlaceholder": "Align front of Aadhaar card inside frame",
+    "scanHint": "Ensure good lighting and all 4 corners visible",
+    "startScan": "Scan with Camera",
+    "manualForm": "Or Enter Details Manually",
+    "fullName": "Full Name",
+    "dob": "Date of Birth",
+    "aadhaarNumber": "12digit Aadhaar Number",
+    "address": "Residential Address",
+    "submit": "Submit Registration",
+    "pendingTitle": "Waiting for Admin Approval",
+    "pendingDesc": "Your registration request has been submitted to your Group Leader. Once approved in the monthly meeting, your passbook will become active.",
+    "pendingStatus": "Status: Under Review",
+    "contactLeader": "Please inform your SHG President (Sunita Sharma) at the next village meeting.",
+    "backToLogin": "Back to Login"
+  },
+  "dashboard": {
+    "greeting": "Namaste, {{name}}",
+    "groupTag": "Pragati Mahila Bachat Gat",
+    "totalSavings": "Total Member Savings",
+    "monthlyContribution": "Monthly Contribution",
+    "monthlyDue": "Due: {{amount}} on 5th {{month}}",
+    "monthlyPaid": "Paid for {{month}}",
+    "monthlyMissed": "Shortfall: August contribution missing",
+    "activeLoan": "Active Loan Repayment",
+    "loanBalance": "Remaining: {{amount}}",
+    "nextEmi": "Next EMI: {{amount}} due {{date}}",
+    "recentTransactions": "Recent Passbook Entries",
+    "viewAll": "View all",
+    "quickActions": "Quick Actions",
+    "downloadReceipt": "Latest Receipt",
+    "applyLoan": "Apply for Loan",
+    "viewSchedule": "EMI Schedule"
+  },
+  "transactions": {
+    "title": "Passbook Ledger",
+    "filterAll": "All",
+    "filterSavings": "Contributions",
+    "filterLoans": "Loans",
+    "reversalBadge": "Reversal Entry",
+    "correctedBadge": "Corrected",
+    "receiptAction": "View Receipt",
+    "originalErrorNotice": "Cancelled: Replaced by correction entry",
+    "reversalNotice": "Reverses mistaken entry: {{reason}}",
+    "empty": "No transactions found in this filter."
+  },
+  "receipts": {
+    "title": "Digital Receipts",
+    "searchPlaceholder": "Search by receipt # or month...",
+    "downloadPdf": "Download PDF Receipt",
+    "approved": "APPROVED",
+    "pending": "Pending Sync",
+    "empty": "No receipts recorded yet."
+  },
+  "loans": {
+    "title": "My Loans",
+    "activeTab": "Active Loan",
+    "pendingTab": "Pending Request",
+    "historyTab": "History",
+    "disbursed": "Disbursed Amount",
+    "interestRate": "Interest Rate",
+    "interestMethod": "Reducing Balance",
+    "installmentsPaid": "Paid {{paid}} of {{total}} installments",
+    "scheduleTitle": "Amortized Installment Schedule",
+    "installmentNo": "#",
+    "dueDate": "Due Date",
+    "principal": "Principal",
+    "interest": "Interest",
+    "totalEmi": "Total EMI",
+    "status": "Status",
+    "paid": "Paid",
+    "upcoming": "Upcoming",
+    "nextDue": "Next Due",
+    "applyButton": "Apply for New Loan",
+    "hasActiveLoanNotice": "You already have an active loan. Existing loans must be settled before applying for a new loan.",
+    "pendingRequestTitle": "Loan Application Under Review",
+    "submittedOn": "Submitted on {{date}}",
+    "requestedAmount": "Requested Amount: {{amount}}",
+    "tenure": "Tenure: {{months}} Months",
+    "reviewStatus": "Status: Pending SHG Committee Approval"
+  },
+  "applyLoan": {
+    "title": "Apply for Loan",
+    "checklistTitle": "Eligibility Criteria",
+    "criteriaActive": "Active Member in Good Standing",
+    "criteriaNoLoan": "No Outstanding Loan Balance",
+    "criteriaDues": "All Monthly Contributions Paid in Full",
+    "maxLimit": "Maximum Eligible Limit: {{amount}} (3x Savings)",
+    "formTitle": "Loan Request Form",
+    "amountLabel": "Loan Amount",
+    "tenureLabel": "Repayment Tenure",
+    "months": "{{count}} Months",
+    "previewTitle": "Repayment Schedule Preview",
+    "monthlyEmi": "Estimated Monthly EMI",
+    "totalInterest": "Total Interest Payable",
+    "submitApplication": "Submit Loan Application",
+    "notEligibleNotice": "You are currently not eligible for a new loan. Please resolve the criteria above."
+  },
+  "alerts": {
+    "title": "Alerts & Notices",
+    "announcementsTab": "Announcements",
+    "notificationsTab": "Personal",
+    "markAllRead": "Mark all as read",
+    "empty": "No alerts at this moment."
+  },
+  "profile": {
+    "title": "Member Profile",
+    "memberId": "Member ID",
+    "phone": "Phone Number",
+    "aadhaar": "Aadhaar Number",
+    "joined": "Joined",
+    "role": "Role",
+    "group": "Bachat Gat",
+    "language": "Language / भाषा / भाषा",
+    "storage": "Offline Storage Diagnostics",
+    "cachedRecords": "Cached Records: {{count}}",
+    "installApp": "Install Sanchay on Home Screen",
+    "logout": "Log Out"
+  },
+  "common": {
+    "cash": "Cash",
+    "bank": "Bank Transfer",
+    "upi": "UPI Payment",
+    "loading": "Loading...",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "close": "Close",
+    "save": "Save",
+    "back": "Back"
+  },
+  "landing": {
+    "nav": {
+      "problem": "Why Sanchay",
+      "howItWorks": "How it works",
+      "demo": "Interactive demo",
+      "features": "Features",
+      "roles": "Roles",
+      "privacy": "Privacy",
+      "faq": "FAQ",
+      "openApp": "Open Sanchay"
+    },
+    "hero": {
+      "badge": "Built for India's 8 Crore SHG Women",
+      "headline": "Every rupee, remembered.",
+      "subhead": "The transparent, offline-first ledger for self-help groups. Works seamlessly on low-cost phones, in deep rural areas, with or without mobile signal.",
+      "ctaPrimary": "Get started free",
+      "ctaSecondary": "See how it works",
+      "shgCount": "Active Groups",
+      "savingsCount": "Total Savings Tracked",
+      "reliability": "Offline Reliability"
+    },
+    "problem": {
+      "badge": "The Reality",
+      "title": "The notebook problem",
+      "subtitle": "Paper registers have sustained community savings for decades, but physical ledgers carry immense friction and mistrust.",
+      "card1Title": "Water, pests & wear",
+      "card1Body": "A single monsoon downpour or misplaced register can erase years of verified contribution history.",
+      "card2Title": "Zero connectivity in deep rural areas",
+      "card2Body": "Traditional cloud banking apps fail completely when meetings take place inside thick concrete rooms or forested hamlets.",
+      "card3Title": "Unspoken suspicion & arithmetic doubt",
+      "card3Body": "When arithmetic is done in pen after long working days, small discrepancies can fracture decades of neighborly trust."
+    },
+    "howItWorks": {
+      "badge": "Simple by Design",
+      "title": "How Sanchay works in 3 steps",
+      "subtitle": "Designed specifically for weekly group meetings where connectivity is non-existent.",
+      "step1Title": "1. Record offline at the meeting",
+      "step1Desc": "The group secretary enters contributions and loan repayments. Receipts are cryptographically created immediately without requiring internet.",
+      "step2Title": "2. Auto-syncs when signal appears",
+      "step2Desc": "As soon as any member enters a zone with mobile data or Wi-Fi, changes synchronize securely in the background.",
+      "step3Title": "3. Transparent conflict resolution",
+      "step3Desc": "If two members record entries while offline, Sanchay never overwrites or erases. Transparent append-only audit trails show corrections plainly."
+    },
+    "demo": {
+      "badge": "Live Interactive Sandbox",
+      "title": "Try Sanchay offline right now",
+      "subtitle": "Toggle your connection, record savings, and see deterministic local receipts generated instantaneously.",
+      "online": "Connected (Online)",
+      "offline": "No Signal (Offline)",
+      "toggleConnection": "Toggle Network State",
+      "deposit": "Record ₹500 Contribution",
+      "simulateConflict": "Simulate 2-Phone Conflict",
+      "auditTrail": "Real-time Ledger Entries",
+      "status": "System Status"
+    },
+    "features": {
+      "badge": "Core Strengths",
+      "title": "Built for low-resource environments",
+      "subtitle": "Every design choice prioritizes battery life, offline resilience, and linguistic accessibility."
+    },
+    "roles": {
+      "badge": "Tailored Views",
+      "title": "Built for leaders and members alike",
+      "subtitle": "Clear boundaries empower presidents and secretaries while giving every member complete visibility.",
+      "adminTab": "For SHG Admins & Leaders",
+      "memberTab": "For Individual Members"
+    },
+    "privacy": {
+      "badge": "Privacy & Trust",
+      "title": "Your data stays yours. Always.",
+      "subtitle": "We practice zero-surveillance design. We never track, profile, or sell your community's savings records.",
+      "rule1Title": "On-Device ID Processing",
+      "rule1Desc": "Aadhaar cards and documents are processed 100% on your device using local WASM models. Images are never uploaded.",
+      "rule2Title": "End-to-End Cryptographic Masking",
+      "rule2Desc": "Aadhaar numbers are immediately masked as XXXX-XXXX-1234 before touching local storage.",
+      "rule3Title": "Zero Vendor Lock-In",
+      "rule3Desc": "Export full passbook statements and Excel-compatible ledger logs at any time."
+    },
+    "faq": {
+      "badge": "Frequently Asked Questions",
+      "title": "Clear answers to honest questions",
+      "subtitle": "Everything you need to know about using Sanchay in your village or community group."
+    },
+    "cta": {
+      "title": "Bring transparency to your savings group today.",
+      "subtitle": "Free, open-source, and installs directly to your home screen in under 3 seconds.",
+      "openApp": "Open Sanchay Now",
+      "installPwa": "Install App"
+    },
+    "footer": {
+      "tagline": "Offline-first savings-group ledger empowering self-help groups across rural India.",
+      "problemStatement": "Built for Hackathon Problem Statement 12 — Resilient Community Finance."
+    }
+  }
+}
