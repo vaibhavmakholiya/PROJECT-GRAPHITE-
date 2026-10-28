@@ -25,7 +25,7 @@ export const RoleTabsSection: React.FC = () => {
   const currentList = activeTab === 'admins' ? adminFeatures : memberFeatures;
 
   return (
-    <section className="py-16 sm:py-24 bg-white border-y border-blue-200 relative">
+    <section className="py-16 sm:py-24 bg-white/80 backdrop-blur-md border-y border-blue-200/80 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="max-w-2xl mx-auto text-center space-y-3 mb-12">

@@ -8,6 +8,7 @@ import {
   AlertCircle,
   ArrowLeft,
   Shield,
+  ShieldCheck,
   User,
   CheckCircle2,
   Sparkles,
@@ -20,6 +21,7 @@ import {
 import { verhoeffValid, generateVerhoeffCheckDigit } from '@sanchay/core';
 import { getRepository } from '../shared/data';
 import { AadhaarOcrModal, AadhaarOcrData } from '../components/common/AadhaarOcrModal';
+import landingBg from '../assets/landing-bg.jpg';
 
 export const LoginView: React.FC = () => {
   const { t } = useTranslation(['public', 'common']);
@@ -28,14 +30,32 @@ export const LoginView: React.FC = () => {
   const repo = getRepository();
 
   const queryParams = new URLSearchParams(location.search);
-  const initialRole = queryParams.get('role') === 'admin' ? 'admin' : 'member';
+  const isInitialAdmin = queryParams.get('role') === 'admin';
 
-  const [selectedRoleHint, setSelectedRoleHint] = useState<'member' | 'admin'>(initialRole);
-  const [phone, setPhone] = useState(initialRole === 'admin' ? '98765 43210' : '');
+  const [selectedRoleHint, setSelectedRoleHint] = useState<'member' | 'admin'>(isInitialAdmin ? 'admin' : 'member');
+  const [phone, setPhone] = useState(isInitialAdmin ? '98765 43210' : '');
   const [step, setStep] = useState<'phone' | 'otp' | 'profile_setup'>('phone');
   const [otp, setOtp] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Sync role and form state whenever URL query params change (e.g. clicking Admin Dashboard vs Member Passbook)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const roleParam = params.get('role');
+    if (roleParam === 'admin') {
+      setSelectedRoleHint('admin');
+      setPhone('98765 43210');
+      setStep('phone');
+      setError(null);
+    } else if (roleParam === 'member') {
+      setSelectedRoleHint('member');
+      if (phone === '98765 43210') {
+        setPhone('');
+      }
+      setError(null);
+    }
+  }, [location.search]);
 
   // Profile Setup State
   const [fullName, setFullName] = useState('');
@@ -60,10 +80,29 @@ export const LoginView: React.FC = () => {
     }
   };
 
-  // Check if session is already active or needs profile setup
+  // Check session on load with strict role isolation
   useEffect(() => {
     async function checkSession() {
-      const requestedStep = queryParams.get('step');
+      const params = new URLSearchParams(location.search);
+      const isRoleAdmin = params.get('role') === 'admin';
+      const requestedStep = params.get('step');
+
+      // If user specifically requested Admin login, ensure we stay on admin login unless they are ALREADY a verified admin
+      if (isRoleAdmin) {
+        setSelectedRoleHint('admin');
+        setPhone('98765 43210');
+        setStep('phone');
+        try {
+          const claims = await repo.getUserClaims();
+          if (claims.role === 'admin' || (Array.isArray(claims.roles) && claims.roles.includes('admin'))) {
+            navigate('/admin', { replace: true });
+            return;
+          }
+        } catch (_) {}
+        // Crucial: Stay on admin login form! Do NOT redirect to member passbook or profile setup!
+        return;
+      }
+
       if (requestedStep === 'profile_setup') {
         setStep('profile_setup');
         return;
@@ -72,22 +111,18 @@ export const LoginView: React.FC = () => {
       try {
         const claims = await repo.getUserClaims();
         if (claims.authUid) {
-          if (selectedRoleHint === 'admin' || claims.role === 'admin' || claims.roles?.includes('admin')) {
+          // If logged in as admin, navigate to admin
+          if (claims.role === 'admin' || (Array.isArray(claims.roles) && claims.roles.includes('admin'))) {
             navigate('/admin', { replace: true });
             return;
           }
+
+          // Otherwise member flow
           const member = await repo.getCurrentMember();
           if (member && member.name && member.name !== 'Member' && member.address && member.status === 'active') {
-            if (member.role === 'admin') {
-              navigate('/admin', { replace: true });
-            } else {
-              navigate('/app', { replace: true });
-            }
-          } else {
-            setStep('profile_setup');
-            if (member?.phone) {
-              setPhone(member.phone);
-            }
+            navigate('/app', { replace: true });
+          } else if (member && member.status === 'pending') {
+            navigate('/pending', { replace: true });
           }
         }
       } catch (_) {
@@ -95,7 +130,7 @@ export const LoginView: React.FC = () => {
       }
     }
     checkSession();
-  }, []);
+  }, [location.search]);
 
   const handleSelectRoleTab = (role: 'admin' | 'member') => {
     setSelectedRoleHint(role);
@@ -278,13 +313,95 @@ export const LoginView: React.FC = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto my-6 sm:my-10 p-6 sm:p-8 bg-white rounded-3xl border border-blue-200 shadow-card animate-fade-in">
+    <div
+      className="min-h-screen py-8 sm:py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center bg-[#F4F9FD]"
+      style={{
+        backgroundImage: `linear-gradient(180deg, rgba(244, 249, 253, 0.75) 0%, rgba(255, 255, 255, 0.88) 35%, rgba(240, 247, 255, 0.92) 100%), url(${landingBg})`,
+        backgroundAttachment: 'fixed',
+        backgroundPosition: 'center top',
+        backgroundSize: 'cover',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
       {/* Invisible reCAPTCHA container for Firebase Phone Auth */}
       <div id="recaptcha-container"></div>
 
-      <div className="space-y-6">
-        {/* Back Link to Landing */}
-        <div className="flex items-center justify-between">
+      <div className="max-w-5xl w-full mx-auto bg-white/95 backdrop-blur-md rounded-3xl border border-blue-200 shadow-elevated overflow-hidden grid grid-cols-1 lg:grid-cols-12 animate-fade-in">
+        {/* Left Desktop Brand Hero (Visible on Desktop lg: screens) */}
+        <div className="hidden lg:flex lg:col-span-5 bg-gradient-to-br from-navy-900 via-blue-900 to-blue-800 text-white p-8 lg:p-10 flex-col justify-between relative overflow-hidden select-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full border border-white/10 pointer-events-none" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] rounded-full border border-white/15 pointer-events-none" />
+
+          <div className="relative z-10 space-y-6">
+            <Link to="/" className="flex items-center gap-3 group">
+              <div className="w-12 h-12 rounded-2xl bg-white border border-blue-200 flex items-center justify-center p-1.5 shadow-subtle shrink-0">
+                <img
+                  src="/logo.png"
+                  alt="Sanchay Logo"
+                  className="w-10 h-10 object-contain group-hover:scale-105 transition-transform"
+                />
+              </div>
+              <div>
+                <b className="text-xl font-heading font-extrabold tracking-tight text-white block">SANCHAY</b>
+                <span className="text-[11px] text-blue-200 font-medium">Offline-First Savings Group Ledger</span>
+              </div>
+            </Link>
+
+            <div className="pt-4">
+              {selectedRoleHint === 'admin' ? (
+                <div className="space-y-4">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs font-bold">
+                    <Shield className="w-4 h-4" />
+                    <span>Administrator Authorization</span>
+                  </div>
+                  <h2 className="text-2xl font-heading font-black text-white leading-snug">
+                    Lead Your Bachat Gat With Transparency
+                  </h2>
+                  <p className="text-sm text-blue-100 leading-relaxed font-normal">
+                    Approve new member registrations, record double-entry contributions, disburse loans with automatic credit rules, and audit group finances.
+                  </p>
+                  <div className="p-4 rounded-2xl bg-white/10 border border-white/15 backdrop-blur-sm space-y-1.5 text-xs">
+                    <span className="text-blue-300 text-[11px] uppercase tracking-wider font-bold">Demo Admin Credentials:</span>
+                    <p className="font-mono text-white text-sm font-bold">Phone: +91 98765 43210</p>
+                    <p className="font-mono text-blue-200 text-xs">Auth Code: 123456</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs font-bold">
+                    <User className="w-4 h-4" />
+                    <span>Member Passbook</span>
+                  </div>
+                  <h2 className="text-2xl font-heading font-black text-white leading-snug">
+                    Your Savings & Credit in Your Hands
+                  </h2>
+                  <p className="text-sm text-blue-100 leading-relaxed font-normal">
+                    Verify contribution receipts with QR codes, listen to your passbook in Hindi, track loan installments, and apply for group credit.
+                  </p>
+                  <div className="p-4 rounded-2xl bg-white/10 border border-white/15 backdrop-blur-sm space-y-1.5 text-xs">
+                    <span className="text-blue-300 text-[11px] uppercase tracking-wider font-bold">Member Access:</span>
+                    <p className="text-white text-xs">Sign in with mobile or scan your Aadhaar card with on-device OCR</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="relative z-10 pt-6 border-t border-white/15 flex items-center justify-between text-xs text-blue-200">
+            <span className="flex items-center gap-1.5 font-medium">
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              100% On-Device Privacy
+            </span>
+            <span className="text-[11px] bg-white/15 px-2.5 py-1 rounded-full border border-white/20 font-bold">
+              Works Offline
+            </span>
+          </div>
+        </div>
+
+        {/* Right Form Container (7 cols on lg, full width on mobile) */}
+        <div className="lg:col-span-7 p-6 sm:p-10 flex flex-col justify-center space-y-6">
+          {/* Back Link to Landing */}
+          <div className="flex items-center justify-between">
           <Link
             to="/"
             className="text-xs text-slate-600 hover:text-blue-600 flex items-center gap-1 font-medium transition"
@@ -806,6 +923,7 @@ export const LoginView: React.FC = () => {
             )}
           </div>
         )}
+      </div>
       </div>
 
       {/* On-Device Aadhaar OCR Scanner Modal */}

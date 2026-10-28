@@ -44,7 +44,7 @@ export const FaqAccordion: React.FC = () => {
   };
 
   return (
-    <section id="faq" className="py-16 sm:py-24 bg-white border-y border-blue-200 relative">
+    <section id="faq" className="py-16 sm:py-24 bg-white/80 backdrop-blur-md border-y border-blue-200/80 relative">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center space-y-3 mb-14">

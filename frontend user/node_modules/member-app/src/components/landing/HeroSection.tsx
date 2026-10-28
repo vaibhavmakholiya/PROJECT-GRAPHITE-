@@ -9,7 +9,7 @@ export const HeroSection: React.FC = () => {
   const { t } = useTranslation();
 
   return (
-    <section className="relative pt-8 pb-16 sm:pt-14 sm:pb-24 overflow-hidden bg-blue-50">
+    <section className="relative pt-8 pb-16 sm:pt-14 sm:pb-24 overflow-hidden bg-transparent">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           {/* Left Column: Copy & CTAs */}

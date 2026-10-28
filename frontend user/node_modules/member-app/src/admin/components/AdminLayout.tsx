@@ -14,7 +14,7 @@ export const AdminLayout: React.FC = () => {
         {/* Mobile Header (hidden on desktop) */}
         <AdminHeader />
 
-        <main className="flex-1 p-4 md:p-8 max-w-5xl w-full mx-auto pb-24 md:pb-10">
+        <main className="flex-1 p-4 md:p-8 max-w-7xl w-full mx-auto pb-24 md:pb-10">
           <Outlet />
         </main>
 

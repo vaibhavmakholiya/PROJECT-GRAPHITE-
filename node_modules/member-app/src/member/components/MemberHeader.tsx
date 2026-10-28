@@ -37,7 +37,7 @@ export const MemberHeader: React.FC<MemberHeaderProps> = ({ member, onLogout }) 
 
   return (
     <header className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-blue-200 safe-top shadow-xs">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         {/* Brand */}
         <div className="flex items-center gap-2.5 shrink-0">
           <img src={logo} alt="Sanchay Logo" className="w-9 h-9 rounded-xl shadow-xs" />
