@@ -24,17 +24,19 @@ let functions: Functions;
 let emulatorsConnected = false;
 
 if (getApps().length === 0) {
-  // If in mock mode without full firebase config, provide fallback demo config
-  const firebaseConfig = env.firebase.apiKey
-    ? env.firebase
-    : {
-        apiKey: 'demo-api-key',
-        authDomain: 'demo-sanchay.firebaseapp.com',
-        projectId: 'demo-sanchay',
-        storageBucket: 'demo-sanchay.appspot.com',
-        messagingSenderId: '000000000000',
-        appId: '1:000000000000:web:000000000000',
-      };
+  // If in emulator mode, use demo-sanchay to match .firebaserc and seed script
+  const resolvedProjectId = env.useEmulator
+    ? (env.firebase.projectId.startsWith('demo-') ? env.firebase.projectId : 'demo-sanchay')
+    : (env.firebase.projectId || 'demo-sanchay');
+
+  const firebaseConfig = {
+    apiKey: env.firebase.apiKey || 'demo-api-key',
+    authDomain: `${resolvedProjectId}.firebaseapp.com`,
+    projectId: resolvedProjectId,
+    storageBucket: `${resolvedProjectId}.appspot.com`,
+    messagingSenderId: env.firebase.messagingSenderId || '000000000000',
+    appId: env.firebase.appId || '1:000000000000:web:000000000000',
+  };
 
   app = initializeApp(firebaseConfig);
 } else {

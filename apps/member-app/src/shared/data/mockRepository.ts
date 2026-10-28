@@ -114,6 +114,16 @@ class MockSanchayRepository implements ISanchayRepository {
     if (savedQueue) {
       this.pendingQueueCount = parseInt(savedQueue, 10);
     }
+
+    const savedRequests = localStorage.getItem('sanchay_mock_loan_requests');
+    if (savedRequests) {
+      try {
+        const parsed = JSON.parse(savedRequests);
+        if (Array.isArray(parsed)) {
+          this.loanRequests = parsed;
+        }
+      } catch {}
+    }
   }
 
   // --- Session & Member ---
@@ -363,6 +373,9 @@ class MockSanchayRepository implements ISanchayRepository {
       status: 'pending',
     };
     this.loanRequests.unshift(newReq);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('sanchay_mock_loan_requests', JSON.stringify(this.loanRequests));
+    }
     return { ...newReq };
   }
 
@@ -591,6 +604,10 @@ class MockSanchayRepository implements ISanchayRepository {
         mode: 'cash',
         reason: `Loan disbursed #${loanId}`,
       });
+    }
+
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('sanchay_mock_loan_requests', JSON.stringify(this.loanRequests));
     }
   }
 

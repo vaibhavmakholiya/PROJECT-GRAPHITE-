@@ -31,19 +31,34 @@ export const AdminLoansView: React.FC = () => {
 
   const loadLoans = async () => {
     try {
-      const [reqs, members] = await Promise.all([
-        repo.getAllLoanRequests(),
-        repo.getGroupMembers(),
-      ]);
+      let reqs: LoanRequest[] = [];
+      let members: import('@sanchay/core').Member[] = [];
+
+      try {
+        reqs = await repo.getAllLoanRequests();
+      } catch (err) {
+        console.warn('Could not load loan requests:', err);
+      }
+
+      try {
+        members = await repo.getGroupMembers();
+      } catch (err) {
+        console.warn('Could not load group members:', err);
+      }
+
       setRequests(reqs);
 
       // Collect active loans across members
       const activeList: Loan[] = [];
       for (const m of members) {
-        const l = await repo.getActiveLoan(m.memberId);
-        if (l) activeList.push(l);
+        try {
+          const l = await repo.getActiveLoan(m.memberId);
+          if (l) activeList.push(l);
+        } catch {}
       }
       setActiveLoans(activeList);
+    } catch (err) {
+      console.error('Error loading loan data in AdminLoansView:', err);
     } finally {
       setLoading(false);
     }
@@ -80,6 +95,7 @@ export const AdminLoansView: React.FC = () => {
   };
 
   const pendingRequests = requests.filter((r) => r.status === 'pending');
+  const autoRejectedRequests = requests.filter((r) => r.status === 'auto_rejected');
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -187,6 +203,72 @@ export const AdminLoansView: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Auto-Rejected & Ineligible Requests (Reviewable for Committee Overrides) */}
+      {autoRejectedRequests.length > 0 && (
+        <div className="bg-white rounded-3xl border border-status-amber-border p-5 sm:p-6 shadow-subtle space-y-4">
+          <div className="flex items-center justify-between border-b border-status-amber-border/40 pb-3">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-status-amber" />
+              <h3 className="font-heading font-bold text-sm text-navy-900">
+                System Flagged / Ineligible Requests ({autoRejectedRequests.length})
+              </h3>
+            </div>
+            <span className="text-[10px] font-semibold text-slate-500">
+              Evaluated by Core Engine
+            </span>
+          </div>
+
+          <div className="divide-y divide-status-amber-border/30 space-y-4">
+            {autoRejectedRequests.map((req) => (
+              <div key={req.id} className="pt-4 first:pt-0 space-y-2.5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <b className="text-sm font-bold text-navy-900">{req.memberId}</b>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-status-error-bg text-status-error border border-status-error-border">
+                        Auto-Rejected
+                      </span>
+                      <span className="text-xs text-slate-500 font-medium">
+                        {req.installments} Months EMI
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Applied: {formatDate(req.createdAt)}
+                    </p>
+                  </div>
+
+                  <div>
+                    <span className="text-xs text-slate-400 block sm:text-right">Requested</span>
+                    <b className="text-base font-heading font-bold text-navy-900">
+                      {formatRupees(req.amountPaise)}
+                    </b>
+                  </div>
+                </div>
+
+                {/* System Reason */}
+                <div className="p-3 rounded-2xl bg-status-amber-bg/40 border border-status-amber-border text-xs text-navy-900">
+                  <span className="font-bold text-status-amber block mb-0.5">Ineligibility Reason:</span>
+                  <p className="text-slate-700 leading-relaxed">
+                    {req.rejectionReason || req.eligibilitySnapshot?.reasons?.join(' | ') || 'Did not meet group eligibility criteria.'}
+                  </p>
+                </div>
+
+                {/* Committee Manual Override Button */}
+                <div className="flex items-center gap-2 pt-1">
+                  <button
+                    onClick={() => handleApprove(req)}
+                    className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition cursor-pointer"
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    <span>Committee Override & Approve</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Active Loans */}
       <div className="bg-white rounded-3xl border border-blue-200 p-5 sm:p-6 shadow-subtle space-y-4">

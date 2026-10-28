@@ -1,4 +1,4 @@
-ww/**
+/**
  * Typed environment configuration and validation for Sanchay Web App.
  *
  * Throws a loud, descriptive error at startup if VITE_DATA=firebase is active

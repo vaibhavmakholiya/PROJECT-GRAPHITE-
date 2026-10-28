@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -20,15 +20,24 @@ import { DashboardSkeleton } from '../components/common/SkeletonLoader';
 export const ApplyLoanView: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { member } = useAuth();
+  const { member, loading: authLoading } = useAuth();
   const { balance } = useBalance(member?.memberId);
-  const { maxLimitPaise, submitLoan, activeLoan, loading } = useLoans(member?.memberId);
+  const { maxLimitPaise, submitLoan, activeLoan, loading: loansLoading } = useLoans(member?.memberId);
 
-  const maxAllowedRupees = Math.max(100000, Math.floor((maxLimitPaise || 10000000) / 100));
-  const [amountRupees, setAmountRupees] = useState<number>(Math.min(10000, maxAllowedRupees));
+  // Maximum allowed loan amount: capped strictly by member's eligibility limit
+  const maxAllowedRupees = Math.max(1000, Math.floor((maxLimitPaise || 600000) / 100));
+  const [amountRupees, setAmountRupees] = useState<number>(Math.min(5000, maxAllowedRupees));
   const [installments, setInstallments] = useState<number>(12);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Sync amountRupees if maxAllowedRupees changes
+  useEffect(() => {
+    if (amountRupees > maxAllowedRupees) {
+      setAmountRupees(maxAllowedRupees);
+    }
+  }, [maxAllowedRupees]);
 
   // Live schedule preview calculated on-the-fly using @sanchay/core's pure engine
   const liveSchedule = useMemo(() => {
@@ -48,14 +57,26 @@ export const ApplyLoanView: React.FC = () => {
 
   const estimatedMonthlyEmi = liveSchedule[0]?.amountPaise || 0;
 
-  if (loading) return <DashboardSkeleton />;
+  if (authLoading || loansLoading) return <DashboardSkeleton />;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!member?.memberId) {
+      setError('Member session is not ready. Please refresh or re-login.');
+      return;
+    }
+    if (amountRupees > maxAllowedRupees) {
+      setError(`Requested amount ₹${amountRupees.toLocaleString('en-IN')} exceeds your borrowing limit of ₹${maxAllowedRupees.toLocaleString('en-IN')}.`);
+      return;
+    }
+
     setIsSubmitting(true);
+    setError(null);
     try {
       await submitLoan(rupeesToPaise(amountRupees), installments);
       setSuccess(true);
+    } catch (err: any) {
+      setError(err?.message || 'Failed to submit loan application. Please check your eligibility and try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -233,25 +254,27 @@ export const ApplyLoanView: React.FC = () => {
           />
           <div className="flex justify-between text-[10px] text-slate-600 mt-1 font-medium">
             <span>Min: ₹1,000</span>
-            <span className="text-blue-600 font-semibold">Max: ₹1,00,000 (1 Lakh)</span>
+            <span className="text-blue-600 font-semibold">Max: ₹{maxAllowedRupees.toLocaleString('en-IN')}</span>
           </div>
 
-          {/* Quick preset chips */}
+          {/* Quick preset chips filtered to valid bounds */}
           <div className="flex flex-wrap gap-1.5 mt-2.5">
-            {[5000, 10000, 25000, 50000, 100000].map((preset) => (
-              <button
-                key={preset}
-                type="button"
-                onClick={() => setAmountRupees(preset)}
-                className={`px-2.5 py-1 text-xs rounded-lg transition-all cursor-pointer font-medium min-h-[32px] ${
-                  amountRupees === preset
-                    ? 'bg-blue-600 text-white font-bold shadow-subtle'
-                    : 'bg-blue-50 text-navy-900 border border-blue-200 hover:border-blue-300'
-                }`}
-              >
-                {preset === 100000 ? '₹1 Lakh' : formatRupees(preset * 100)}
-              </button>
-            ))}
+            {[1000, 2000, 3000, 5000, 10000, 25000, 50000, 100000]
+              .filter((preset) => preset <= maxAllowedRupees)
+              .map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => setAmountRupees(preset)}
+                  className={`px-2.5 py-1 text-xs rounded-lg transition-all cursor-pointer font-medium min-h-[32px] ${
+                    amountRupees === preset
+                      ? 'bg-blue-600 text-white font-bold shadow-subtle'
+                      : 'bg-blue-50 text-navy-900 border border-blue-200 hover:border-blue-300'
+                  }`}
+                >
+                  {formatRupees(preset * 100)}
+                </button>
+              ))}
           </div>
         </div>
 
@@ -298,6 +321,13 @@ export const ApplyLoanView: React.FC = () => {
             </span>
           </div>
         </div>
+
+        {error && (
+          <div className="p-3.5 rounded-2xl bg-status-error-bg border border-status-error-border text-status-error text-xs flex items-center gap-2 animate-fade-in font-medium">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
 
         {/* Submit Action (Fix 1: min-h-[48px], blue-600) */}
         <button
