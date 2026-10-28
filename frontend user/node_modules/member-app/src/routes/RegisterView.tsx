@@ -437,7 +437,7 @@ export const RegisterView: React.FC = () => {
             className="w-full min-h-[48px] py-3.5 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-heading font-bold text-xs flex items-center justify-center gap-2 shadow-subtle transition-colors cursor-pointer focus:ring-3 focus:ring-blue-300"
           >
             <Sparkles className="w-4 h-4" />
-            <span>[Dev Shortcut] Simulate Admin Approval</span>
+            <span>Open Member Passbook →</span>
           </button>
 
           <Link

@@ -15,9 +15,11 @@ import {
   Calendar,
   FileText,
   Building2,
+  Camera,
 } from 'lucide-react';
 import { verhoeffValid, generateVerhoeffCheckDigit } from '@sanchay/core';
 import { getRepository } from '../shared/data';
+import { AadhaarOcrModal, AadhaarOcrData } from '../components/common/AadhaarOcrModal';
 
 export const LoginView: React.FC = () => {
   const { t } = useTranslation(['public', 'common']);
@@ -42,6 +44,21 @@ export const LoginView: React.FC = () => {
   const [address, setAddress] = useState('');
   const [aadhaarInput, setAadhaarInput] = useState('999900001234');
   const [groupCode, setGroupCode] = useState('PRAG24');
+  const [showOcrModal, setShowOcrModal] = useState(false);
+
+  const handleOcrScanComplete = (data: AadhaarOcrData) => {
+    if (data.name) setFullName(data.name);
+    if (data.dob) setDob(data.dob);
+    if (data.gender) setGender(data.gender);
+    if (data.address) setAddress(data.address);
+    if (data.aadhaarNumber) setAadhaarInput(data.aadhaarNumber);
+    if (!phone) setPhone('98000 00014');
+
+    // If currently on phone step in member tab, transition directly to profile setup
+    if (step === 'phone') {
+      setStep('profile_setup');
+    }
+  };
 
   // Check if session is already active or needs profile setup
   useEffect(() => {
@@ -185,6 +202,7 @@ export const LoginView: React.FC = () => {
     const check = generateVerhoeffCheckDigit(prefix);
     setAadhaarInput(`${prefix}${check}`);
     setGroupCode('PRAG24');
+    if (!phone) setPhone('98000 00014');
     setError(null);
   };
 
@@ -224,10 +242,14 @@ export const LoginView: React.FC = () => {
     setError(null);
     setLoading(true);
     try {
-      const effectivePhone = cleanPhone || (repo as any).phone || '+919876543210';
+      const targetPhone = phone.trim() || cleanPhone || (repo as any).phone || '98000 00014';
+      const formattedPhone = targetPhone.startsWith('+')
+        ? targetPhone
+        : `+91${targetPhone.replace(/\D/g, '').slice(-10)}`;
+
       await repo.registerMember({
         name: fullName.trim(),
-        phone: effectivePhone.startsWith('+') ? effectivePhone : `+91${effectivePhone.replace(/\D/g, '').slice(-10)}`,
+        phone: formattedPhone,
         dob: dob || '1994-08-12',
         address: address.trim(),
         gender,
@@ -357,6 +379,57 @@ export const LoginView: React.FC = () => {
         {/* STEP 1: PHONE */}
         {step === 'phone' && (
           <form onSubmit={handleSendOtp} className="space-y-4">
+            {/* Member On-Device OCR Scanner Quick Entry */}
+            {selectedRoleHint === 'member' && (
+              <div className="p-3.5 rounded-2xl bg-gradient-to-br from-blue-50 via-indigo-50/50 to-blue-50 border border-blue-200 shadow-xs space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs">
+                      <Camera className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h2 className="text-xs font-heading font-bold text-navy-900">
+                        Scan Aadhaar Card (On-Device OCR)
+                      </h2>
+                      <p className="text-[10px] text-slate-500 font-medium">
+                        Instant 100% private AI scanning • Auto-fills your details
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    Offline AI
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowOcrModal(true)}
+                    className="py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-heading font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition cursor-pointer"
+                  >
+                    <Camera className="w-3.5 h-3.5" />
+                    <span>Scan Card (OCR)</span>
+                  </button>
+                  <Link
+                    to="/register"
+                    className="py-2.5 px-3 rounded-xl bg-white hover:bg-blue-50 text-blue-700 border border-blue-300 font-heading font-bold text-xs flex items-center justify-center gap-1 shadow-xs transition text-center"
+                  >
+                    <span>Register with OCR →</span>
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {selectedRoleHint === 'member' && (
+              <div className="relative flex py-1 items-center">
+                <div className="flex-grow border-t border-blue-100"></div>
+                <span className="flex-shrink mx-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  Or Sign In with Mobile
+                </span>
+                <div className="flex-grow border-t border-blue-100"></div>
+              </div>
+            )}
+
             <div>
               <div className="flex justify-between items-center mb-1.5">
                 <label className="text-xs font-semibold text-navy-900">
@@ -499,16 +572,29 @@ export const LoginView: React.FC = () => {
         {/* STEP 3: PROFILE SETUP */}
         {step === 'profile_setup' && (
           <form onSubmit={handleSaveProfile} className="space-y-4">
-            {/* Quick Fill Button */}
-            <div className="p-3 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-between">
-              <span className="text-xs font-semibold text-blue-900">Need sample test details?</span>
-              <button
-                type="button"
-                onClick={handleQuickFillDemo}
-                className="text-xs bg-white text-blue-700 border border-blue-300 hover:bg-blue-100 font-bold px-3 py-1.5 rounded-xl shadow-xs transition cursor-pointer"
-              >
-                ⚡ Quick Fill (Meena Kumari)
-              </button>
+            {/* Quick Fill & OCR Scan Option */}
+            <div className="p-3 rounded-2xl bg-blue-50 border border-blue-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+              <div>
+                <span className="text-xs font-semibold text-blue-900 block">Fast Profile Completion</span>
+                <span className="text-[10px] text-blue-700 block">Scan Aadhaar card or use sample demo</span>
+              </div>
+              <div className="flex items-center gap-1.5 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => setShowOcrModal(true)}
+                  className="flex-1 sm:flex-initial text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-xl shadow-xs transition cursor-pointer flex items-center justify-center gap-1"
+                >
+                  <Camera className="w-3.5 h-3.5" />
+                  <span>Scan Card (OCR)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleQuickFillDemo}
+                  className="flex-1 sm:flex-initial text-xs bg-white text-blue-700 border border-blue-300 hover:bg-blue-100 font-bold px-3 py-1.5 rounded-xl shadow-xs transition cursor-pointer"
+                >
+                  ⚡ Quick Fill
+                </button>
+              </div>
             </div>
 
             {/* Full Name */}
@@ -566,6 +652,31 @@ export const LoginView: React.FC = () => {
                     </button>
                   ))}
                 </div>
+              </div>
+            </div>
+
+            {/* Mobile Number for SMS alerts & passbook access */}
+            <div>
+              <div className="flex justify-between items-center mb-1.5">
+                <label className="text-xs font-semibold text-navy-900">
+                  Mobile Number (Linked to Passbook) *
+                </label>
+                <span className="text-[10px] text-blue-600 font-medium">For SMS alerts & sign-in</span>
+              </div>
+              <div className="flex items-center rounded-2xl border border-blue-200 bg-white overflow-hidden focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-200 shadow-xs transition-all">
+                <div className="flex items-center gap-1.5 px-3.5 py-3 bg-blue-50 border-r border-blue-200 text-slate-700 font-bold text-xs select-none shrink-0">
+                  <span className="text-sm">🇮🇳</span>
+                  <span>+91</span>
+                </div>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="98000 00014"
+                  maxLength={13}
+                  className="w-full px-3.5 py-3 text-sm text-navy-900 placeholder:text-slate-400 outline-none font-medium"
+                  required
+                />
               </div>
             </div>
 
@@ -665,20 +776,38 @@ export const LoginView: React.FC = () => {
         {/* Footer info */}
         {step !== 'profile_setup' && (
           <div className="pt-4 border-t border-blue-100 text-center text-xs text-slate-600">
-            <span>Don't have an account? </span>
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedRoleHint('member');
-                setStep('phone');
-              }}
-              className="font-bold text-blue-600 hover:text-blue-700 underline cursor-pointer"
-            >
-              Sign in with mobile number
-            </button>
+            {selectedRoleHint === 'member' ? (
+              <div>
+                <span>New SHG member without an account? </span>
+                <Link
+                  to="/register"
+                  className="font-bold text-blue-600 hover:text-blue-700 underline cursor-pointer"
+                >
+                  Register with Aadhaar OCR Scanner →
+                </Link>
+              </div>
+            ) : (
+              <div>
+                <span>Looking for Member Passbook? </span>
+                <button
+                  type="button"
+                  onClick={() => handleSelectRoleTab('member')}
+                  className="font-bold text-blue-600 hover:text-blue-700 underline cursor-pointer"
+                >
+                  Switch to Member Sign In →
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
+
+      {/* On-Device Aadhaar OCR Scanner Modal */}
+      <AadhaarOcrModal
+        isOpen={showOcrModal}
+        onClose={() => setShowOcrModal(false)}
+        onScanComplete={handleOcrScanComplete}
+      />
     </div>
   );
 };
