@@ -63,7 +63,9 @@ export function useLoans(memberId?: string) {
   }, [fetchLoanData]);
 
   const submitLoan = async (amountPaise: number, installments: number) => {
-    if (!memberId) return;
+    if (!memberId) {
+      throw new Error('Active member session is required to submit a loan request.');
+    }
     const result = await repo.submitLoanRequest({
       memberId,
       amountPaise,

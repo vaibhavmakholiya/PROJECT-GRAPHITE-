@@ -15,6 +15,7 @@ import { getRepository } from '../shared/data';
 import type { Receipt } from '@sanchay/core';
 import { generatePdfReceipt } from '../lib/pdfReceipt';
 import { DashboardSkeleton } from '../components/common/SkeletonLoader';
+import { VoiceTellerButton } from '../components/common/VoiceTellerButton';
 
 export const ReceiptDetailView: React.FC = () => {
   const { receiptId } = useParams<{ receiptId: string }>();
@@ -158,6 +159,19 @@ export const ReceiptDetailView: React.FC = () => {
 
       {/* Action Buttons */}
       <div className="space-y-2 pt-2">
+        <VoiceTellerButton
+          mode="receipt"
+          receiptData={{
+            memberName: member?.name && member.name !== 'Member' ? member.name : 'दीदी',
+            receiptNo: receipt.receiptNo,
+            type: receipt.mode,
+            amountPaise: receipt.amountPaise,
+            date: receipt.date,
+          }}
+          className="w-full min-h-[48px] py-3.5 justify-center text-xs"
+          size="lg"
+        />
+
         <button
           type="button"
           onClick={handleDownload}

@@ -114,6 +114,16 @@ class MockSanchayRepository implements ISanchayRepository {
     if (savedQueue) {
       this.pendingQueueCount = parseInt(savedQueue, 10);
     }
+
+    const savedRequests = localStorage.getItem('sanchay_mock_loan_requests');
+    if (savedRequests) {
+      try {
+        const parsed = JSON.parse(savedRequests);
+        if (Array.isArray(parsed)) {
+          this.loanRequests = parsed;
+        }
+      } catch {}
+    }
   }
 
   // --- Session & Member ---
@@ -363,6 +373,9 @@ class MockSanchayRepository implements ISanchayRepository {
       status: 'pending',
     };
     this.loanRequests.unshift(newReq);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('sanchay_mock_loan_requests', JSON.stringify(this.loanRequests));
+    }
     return { ...newReq };
   }
 
@@ -560,16 +573,19 @@ class MockSanchayRepository implements ISanchayRepository {
     requestId: string,
     decision: 'approved' | 'rejected',
     reason?: string
-  ): Promise<void> {
+  ): Promise<{ loanId?: string; receiptId?: string; receipt?: Receipt } | void> {
     const req = this.loanRequests.find((r) => r.id === requestId);
     if (!req) throw new Error('Loan request not found');
 
     req.status = decision;
+    let loanId: string | undefined;
+    let receipt: Receipt | undefined;
+
     if (decision === 'rejected') {
       req.rejectionReason = reason;
     } else {
       // Approve loan: create loan doc, schedule, and disbursement transaction
-      const loanId = `loan-${Date.now()}`;
+      loanId = `loan-${Date.now()}`;
       const dateStr = new Date().toISOString().slice(0, 10);
       const newLoan: Loan = {
         loanId,
@@ -584,14 +600,21 @@ class MockSanchayRepository implements ISanchayRepository {
       };
       this.activeLoan = newLoan;
 
-      await this.recordTransactionWithReceipt({
+      const recordRes = await this.recordTransactionWithReceipt({
         memberId: req.memberId,
         type: 'loan_disbursement',
         amountPaise: req.amountPaise,
         mode: 'cash',
         reason: `Loan disbursed #${loanId}`,
       });
+      receipt = recordRes.receipt;
     }
+
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('sanchay_mock_loan_requests', JSON.stringify(this.loanRequests));
+    }
+
+    return { loanId, receiptId: receipt?.receiptId, receipt };
   }
 
   async createAnnouncement(title: string, body: string): Promise<Announcement> {

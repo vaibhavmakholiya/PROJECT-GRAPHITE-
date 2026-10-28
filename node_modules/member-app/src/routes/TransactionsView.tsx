@@ -15,6 +15,7 @@ import { generatePdfReceipt } from '../lib/pdfReceipt';
 import { StatusBadge } from '../components/common/StatusBadge';
 import { EmptyState } from '../components/common/EmptyState';
 import { DashboardSkeleton } from '../components/common/SkeletonLoader';
+import { VoiceTellerButton } from '../components/common/VoiceTellerButton';
 
 export const TransactionsView: React.FC = () => {
   const { t } = useTranslation();
@@ -44,9 +45,22 @@ export const TransactionsView: React.FC = () => {
     <div className="p-4 space-y-4 animate-fade-in">
       {/* Title & Filter Tabs */}
       <div>
-        <h1 className="font-heading font-extrabold text-xl text-navy-900 tracking-tight mb-2">
-          {t('transactions.title', 'Passbook Ledger')}
-        </h1>
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="font-heading font-extrabold text-xl text-navy-900 tracking-tight">
+            {t('transactions.title', 'Passbook Ledger')}
+          </h1>
+          <VoiceTellerButton
+            mode="passbook"
+            passbookData={{
+              memberName: member?.name && member.name !== 'Member' ? member.name : 'दीदी',
+              groupName: 'प्रगति महिला बचत गट',
+              savingsPaise: transactions
+                .filter((tx) => tx.type === 'contribution')
+                .reduce((acc, curr) => acc + curr.amountPaise, 0),
+            }}
+            size="sm"
+          />
+        </div>
 
         <div className="flex gap-2">
           {[

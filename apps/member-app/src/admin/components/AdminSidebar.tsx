@@ -27,6 +27,7 @@ export const AdminSidebar: React.FC = () => {
 
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [pendingCount, setPendingCount] = useState(repo.getPendingSyncCount());
+  const [pendingMembersCount, setPendingMembersCount] = useState(0);
   const [showLangMenu, setShowLangMenu] = useState(false);
 
   useEffect(() => {
@@ -35,9 +36,15 @@ export const AdminSidebar: React.FC = () => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    const interval = setInterval(() => {
+    const checkPending = () => {
       setPendingCount(repo.getPendingSyncCount());
-    }, 2000);
+      repo.getPendingMembers()
+        .then((mems) => setPendingMembersCount(mems?.length || 0))
+        .catch(() => {});
+    };
+
+    checkPending();
+    const interval = setInterval(checkPending, 3000);
 
     return () => {
       window.removeEventListener('online', handleOnline);
@@ -119,7 +126,12 @@ export const AdminSidebar: React.FC = () => {
                 }
               >
                 <Icon className="w-4 h-4 shrink-0 text-blue-300" />
-                <span className="truncate">{item.label}</span>
+                <span className="truncate flex-1">{item.label}</span>
+                {item.to === '/admin/members' && pendingMembersCount > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-amber-400 text-navy-900 animate-pulse shrink-0">
+                    {pendingMembersCount}
+                  </span>
+                )}
               </NavLink>
             );
           })}

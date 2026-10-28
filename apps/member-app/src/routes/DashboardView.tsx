@@ -15,6 +15,7 @@ import { formatRupees } from '../lib/currency';
 import { formatDate } from '../lib/date';
 import { CommunityMotif } from '../components/common/CommunityMotif';
 import { DashboardSkeleton } from '../components/common/SkeletonLoader';
+import { VoiceTellerButton } from '../components/common/VoiceTellerButton';
 import { useAuth } from '../hooks/useAuth';
 import { useBalance } from '../hooks/useBalance';
 import { useLoans } from '../hooks/useLoans';
@@ -113,13 +114,25 @@ export const DashboardView: React.FC = () => {
             </span>
           </div>
 
-          <div className="my-3">
-            <div className="font-heading font-extrabold text-3xl text-navy-900 tracking-tight">
-              {formatRupees(balance?.netSavingsPaise || 0)}
+          <div className="my-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="font-heading font-extrabold text-3xl text-navy-900 tracking-tight">
+                {formatRupees(balance?.netSavingsPaise || 0)}
+              </div>
+              <p className="text-[11px] text-slate-600 mt-0.5">
+                Total Contributions: {formatRupees(balance?.contributionPaise || 0)}
+              </p>
             </div>
-            <p className="text-[11px] text-slate-600 mt-0.5">
-              Total Contributions: {formatRupees(balance?.contributionPaise || 0)}
-            </p>
+
+            <VoiceTellerButton
+              mode="passbook"
+              passbookData={{
+                memberName: member?.name && member.name !== 'Member' ? member.name : 'दीदी',
+                groupName: 'प्रगति महिला बचत गट',
+                savingsPaise: balance?.netSavingsPaise || 0,
+                loanOutstandingPaise: outstandingPaise || 0,
+              }}
+            />
           </div>
 
           {/* Monthly Contribution Status Pill */}

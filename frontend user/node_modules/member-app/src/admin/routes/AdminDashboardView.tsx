@@ -7,6 +7,8 @@ import {
   PlusCircle,
   History,
   ChevronRight,
+  Users,
+  Clock,
 } from 'lucide-react';
 import { getRepository } from '../../shared/data';
 import { formatRupees } from '../../shared/utils/currency';
@@ -20,15 +22,17 @@ export const AdminDashboardView: React.FC = () => {
   const [summary, setSummary] = useState<GroupBalanceSummary | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [pendingCount, setPendingCount] = useState(repo.getPendingSyncCount());
+  const [pendingMembersCount, setPendingMembersCount] = useState(0);
   const [adminName, setAdminName] = useState<string>('Admin');
   const [loading, setLoading] = useState(true);
 
   const loadData = async () => {
     try {
-      const [currentAdmin, sum, txs] = await Promise.all([
+      const [currentAdmin, sum, txs, pendingMems] = await Promise.all([
         repo.getCurrentMember(),
         repo.getGroupSummary(),
         repo.getAllTransactions(),
+        repo.getPendingMembers(),
       ]);
       if (currentAdmin?.name) {
         setAdminName(currentAdmin.name);
@@ -36,6 +40,7 @@ export const AdminDashboardView: React.FC = () => {
       setSummary(sum);
       setTransactions(txs);
       setPendingCount(repo.getPendingSyncCount());
+      setPendingMembersCount(pendingMems?.length || 0);
     } finally {
       setLoading(false);
     }
@@ -68,6 +73,34 @@ export const AdminDashboardView: React.FC = () => {
           </span>
         </div>
       </div>
+
+      {/* New Member Registration Request Alert Banner */}
+      {pendingMembersCount > 0 && (
+        <Link
+          to="/admin/members?tab=pending"
+          className="p-4 rounded-3xl bg-gradient-to-r from-amber-500/10 via-amber-50 to-amber-100/60 border border-amber-300 text-amber-950 flex items-center justify-between hover:shadow-card hover:border-amber-400 transition group animate-fade-in"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-200 text-amber-800 flex items-center justify-center font-bold shrink-0 shadow-xs">
+              <Clock className="w-5 h-5 animate-pulse" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-amber-950 flex items-center gap-2">
+                <span>{pendingMembersCount} Member Approval {pendingMembersCount === 1 ? 'Request' : 'Requests'} Generated</span>
+                <span className="px-2 py-0.5 text-[10px] font-black rounded-full bg-amber-400 text-navy-900">
+                  ACTION REQUIRED
+                </span>
+              </p>
+              <p className="text-xs text-amber-800 mt-0.5">
+                New member{pendingMembersCount > 1 ? 's' : ''} signed up with Aadhaar OCR awaiting your approval
+              </p>
+            </div>
+          </div>
+          <span className="text-xs font-bold text-amber-900 group-hover:underline flex items-center gap-1 shrink-0 ml-2">
+            Review & Approve <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+          </span>
+        </Link>
+      )}
 
       {/* Hero Stats Card */}
       <div className="bg-gradient-to-br from-navy-900 via-blue-900 to-blue-700 rounded-3xl p-6 sm:p-7 text-white shadow-card relative overflow-hidden">

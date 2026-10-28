@@ -119,7 +119,11 @@ export interface ISanchayRepository {
     correctedData?: { amountPaise: number; type: TransactionType; mode: PaymentMode }
   ): Promise<{ reversal: Transaction; corrected?: Transaction; receipt?: Receipt }>;
   getAllLoanRequests(): Promise<LoanRequest[]>;
-  decideLoan(requestId: string, decision: 'approved' | 'rejected', reason?: string): Promise<void>;
+  decideLoan(
+    requestId: string,
+    decision: 'approved' | 'rejected',
+    reason?: string
+  ): Promise<{ loanId?: string; receiptId?: string; receipt?: Receipt } | void>;
   createAnnouncement(title: string, body: string): Promise<Announcement>;
   getConflicts(): Promise<Conflict[]>;
   resolveConflict(conflictId: string, resolution: string): Promise<void>;
