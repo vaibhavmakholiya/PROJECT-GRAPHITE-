@@ -153,6 +153,8 @@ export const LoginView: React.FC = () => {
         } else {
           navigate('/app', { replace: true });
         }
+      } else if (member && member.status === 'pending') {
+        navigate('/pending', { replace: true });
       } else {
         // Transition directly to profile setup
         setStep('profile_setup');
@@ -247,7 +249,7 @@ export const LoginView: React.FC = () => {
         ? targetPhone
         : `+91${targetPhone.replace(/\D/g, '').slice(-10)}`;
 
-      await repo.registerMember({
+      const newMember = await repo.registerMember({
         name: fullName.trim(),
         phone: formattedPhone,
         dob: dob || '1994-08-12',
@@ -262,8 +264,12 @@ export const LoginView: React.FC = () => {
       // Strict privacy: clear raw Aadhaar from memory
       setAadhaarInput('');
 
-      // Navigate straight to Member Passbook
-      navigate('/app', { replace: true });
+      // Navigate to /pending if waiting for admin approval
+      if (newMember.status === 'pending') {
+        navigate('/pending', { replace: true });
+      } else {
+        navigate('/app', { replace: true });
+      }
     } catch (err: any) {
       setError(err?.message || 'Failed to save member profile. Please check the information and try again.');
     } finally {

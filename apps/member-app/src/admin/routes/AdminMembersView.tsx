@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Users,
@@ -18,13 +19,23 @@ import { formatDate } from '../../shared/utils/date';
 export const AdminMembersView: React.FC = () => {
   const { t } = useTranslation(['admin', 'common']);
   const repo = getRepository();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [activeTab, setActiveTab] = useState<'active' | 'pending'>('active');
+  const initialTab = searchParams.get('tab') === 'pending' ? 'pending' : 'active';
+  const [activeTab, setActiveTab] = useState<'active' | 'pending'>(initialTab);
   const [activeMembers, setActiveMembers] = useState<Member[]>([]);
   const [pendingMembers, setPendingMembers] = useState<Member[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+
+  // Sync tab with URL search parameter if changed externally
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'pending' || tabParam === 'active') {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
 
   // Detail Modal State
   const [selectedMemberDetail, setSelectedMemberDetail] = useState<Member | null>(null);
@@ -63,6 +74,8 @@ export const AdminMembersView: React.FC = () => {
 
   useEffect(() => {
     loadMembers();
+    const interval = setInterval(loadMembers, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleApprove = async (memberId: string, name: string) => {
@@ -128,11 +141,42 @@ export const AdminMembersView: React.FC = () => {
         </div>
       )}
 
+      {/* Pending Member Registration Request Alert */}
+      {pendingMembers.length > 0 && activeTab === 'active' && (
+        <div
+          onClick={() => {
+            setActiveTab('pending');
+            setSearchParams({ tab: 'pending' });
+          }}
+          className="p-3.5 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-medium flex items-center justify-between cursor-pointer hover:bg-amber-100/90 transition shadow-xs animate-fade-in"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-amber-200 text-amber-800 flex items-center justify-center font-bold shrink-0">
+              <Clock className="w-4 h-4 animate-pulse" />
+            </div>
+            <div>
+              <span className="font-bold text-amber-950">
+                {pendingMembers.length} New Member Registration {pendingMembers.length === 1 ? 'Request' : 'Requests'} Generated
+              </span>
+              <p className="text-[11px] text-amber-700">
+                Aadhaar OCR verified applicant{pendingMembers.length > 1 ? 's' : ''} awaiting committee review and approval
+              </p>
+            </div>
+          </div>
+          <span className="font-bold text-amber-800 text-[11px] hover:underline shrink-0">
+            Review Requests →
+          </span>
+        </div>
+      )}
+
       {/* Tabs */}
       <div className="flex gap-2 border-b border-blue-200 pb-2">
         <button
-          onClick={() => setActiveTab('active')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+          onClick={() => {
+            setActiveTab('active');
+            setSearchParams({});
+          }}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
             activeTab === 'active'
               ? 'bg-blue-600 text-white shadow-xs'
               : 'text-slate-600 hover:text-navy-900 hover:bg-blue-100/60'
@@ -143,17 +187,24 @@ export const AdminMembersView: React.FC = () => {
         </button>
 
         <button
-          onClick={() => setActiveTab('pending')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+          onClick={() => {
+            setActiveTab('pending');
+            setSearchParams({ tab: 'pending' });
+          }}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
             activeTab === 'pending'
               ? 'bg-blue-600 text-white shadow-xs'
               : 'text-slate-600 hover:text-navy-900 hover:bg-blue-100/60'
           }`}
         >
           <Clock className="w-4 h-4" />
-          <span>{t('admin:members.pendingTab', { count: pendingMembers.length })}</span>
-          {pendingMembers.length > 0 && (
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+          <span>Pending Approval</span>
+          {pendingMembers.length > 0 ? (
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-400 text-navy-900 animate-pulse">
+              {pendingMembers.length}
+            </span>
+          ) : (
+            <span className="text-[11px] text-slate-400 font-normal">(0)</span>
           )}
         </button>
       </div>

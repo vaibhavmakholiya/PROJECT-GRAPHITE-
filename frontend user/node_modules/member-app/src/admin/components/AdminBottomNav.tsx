@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -15,10 +15,24 @@ import {
   X,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { getRepository } from '../../shared/data';
 
 export const AdminBottomNav: React.FC = () => {
   const { t } = useTranslation(['admin', 'common']);
+  const repo = getRepository();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [pendingMembersCount, setPendingMembersCount] = useState(0);
+
+  useEffect(() => {
+    const checkPending = () => {
+      repo.getPendingMembers()
+        .then((mems) => setPendingMembersCount(mems?.length || 0))
+        .catch(() => {});
+    };
+    checkPending();
+    const interval = setInterval(checkPending, 3000);
+    return () => clearInterval(interval);
+  }, [repo]);
 
   const mainTabs = [
     { to: '/admin', end: true, label: t('admin:nav.home', 'Home'), icon: LayoutDashboard },
@@ -112,6 +126,9 @@ export const AdminBottomNav: React.FC = () => {
                         </div>
                       ) : (
                         <Icon className={cn('w-5 h-5 mb-1 transition-transform', isActive && 'scale-110')} />
+                      )}
+                      {item.to === '/admin/members' && pendingMembersCount > 0 && (
+                        <span className="absolute -top-1 -right-1.5 w-2.5 h-2.5 bg-amber-400 rounded-full border-2 border-white animate-pulse" />
                       )}
                     </div>
                     <span className="truncate max-w-[64px] text-[11px]">{item.label}</span>
