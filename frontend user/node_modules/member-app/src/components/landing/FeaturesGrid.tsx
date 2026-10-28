@@ -59,7 +59,7 @@ export const FeaturesGrid: React.FC = () => {
   ];
 
   return (
-    <section id="features" className="py-16 sm:py-24 bg-blue-50 relative">
+    <section id="features" className="py-16 sm:py-24 bg-transparent relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="max-w-2xl mx-auto text-center space-y-3 mb-14">

@@ -10,7 +10,7 @@ export const MemberLayout: React.FC = () => {
   return (
     <div className="min-h-screen bg-blue-50 text-navy-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
       <MemberHeader member={member} onLogout={logout} />
-      <main className="flex-1 max-w-5xl w-full mx-auto pb-24 md:pb-12 pt-4 px-4 sm:px-6 lg:px-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto pb-24 md:pb-12 pt-6 px-4 sm:px-6 lg:px-8">
         <Outlet />
       </main>
       <MemberBottomNav memberId={member?.memberId} />
